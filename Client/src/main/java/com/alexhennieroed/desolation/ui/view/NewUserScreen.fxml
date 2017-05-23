@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.alexhennieroed.desolation.ui.controller.NewUserScreenController">
+   <bottom>
+      <HBox prefHeight="28.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button mnemonicParsing="false" onAction="#makeUser" text="Create User">
+               <HBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="10.0" top="5.0" />
+               </HBox.margin>
+            </Button>
+            <Label fx:id="statusLabel">
+               <HBox.margin>
+                  <Insets left="5.0" top="10.0" />
+               </HBox.margin>
+            </Label>
+         </children>
+      </HBox>
+   </bottom>
+   <top>
+      <Pane prefHeight="148.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label alignment="CENTER" layoutX="65.0" layoutY="44.0" text="DESOLATION" textAlignment="CENTER">
+               <font>
+                  <Font name="High Tower Text" size="96.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
+   </top>
+   <center>
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="250.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+         <children>
+            <HBox prefHeight="200.0" prefWidth="800.0">
+               <children>
+                  <Label text="Username">
+                     <font>
+                        <Font name="High Tower Text" size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="150.0" right="10.0" top="50.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="userNameField" prefHeight="31.0" prefWidth="275.0">
+                     <HBox.margin>
+                        <Insets top="50.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox prefHeight="200.0" prefWidth="800.0">
+               <children>
+                  <Label text="Password">
+                     <font>
+                        <Font name="High Tower Text" size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="150.0" right="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="passwordField" prefHeight="31.0" prefWidth="275.0" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>

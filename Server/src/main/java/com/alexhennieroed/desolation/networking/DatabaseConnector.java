@@ -31,6 +31,11 @@ public class DatabaseConnector {
         numusers = 0;
         connect();
         usercol = database.getCollection("users");
+        MongoCursor<Document> cursor = usercol.find().iterator();
+        while (cursor.hasNext()) {
+            numusers++;
+            cursor.next();
+        }
     }
 
     /**
@@ -46,29 +51,32 @@ public class DatabaseConnector {
      * Adds a new user to the database
      * @param user the user to add
      */
-    public void addUser(User user) {
+    public boolean addUser(User user) {
         MongoCursor<Document> cursor = usercol.find(eq("username", user.getUsername())).iterator();
         if (cursor.hasNext()) {
             System.out.println("User already exists.");
-            return;
+            return false;
         }
         Document doc = new Document("username", user.getUsername())
                 .append("password", user.getPassword());
         usercol.insertOne(doc);
         numusers++;
+        return true;
     }
 
     /**
      * Removes the user from thte database
      * @param user the user to remove
      */
-    public void removeUser(User user) {
+    public boolean removeUser(User user) {
         if (checkUser(user)) {
             usercol.deleteOne(eq("username", user.getUsername()));
             numusers--;
+            return true;
         } else {
             System.out.println("User didn't check out.");
         }
+        return false;
     }
 
     /**
