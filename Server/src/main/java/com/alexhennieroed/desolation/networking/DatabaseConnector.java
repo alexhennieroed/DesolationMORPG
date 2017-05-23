@@ -1,8 +1,6 @@
 package main.java.com.alexhennieroed.desolation.networking;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -12,7 +10,6 @@ import static com.mongodb.client.model.Projections.*;
 import main.java.com.alexhennieroed.desolation.Settings;
 import org.bson.Document;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
