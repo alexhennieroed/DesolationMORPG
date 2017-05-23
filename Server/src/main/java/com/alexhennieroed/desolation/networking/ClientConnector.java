@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Connects to the clients
@@ -19,7 +17,6 @@ public class ClientConnector extends Thread {
     private final DatagramSocket socket;
     private InetAddress clientAddress;
     private int clientPort;
-    public ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
      * Creates a new ServerThread
@@ -59,9 +56,7 @@ public class ClientConnector extends Thread {
      * @throws IOException when there is an IO issue
      */
     private String receivePacket() throws IOException {
-        //lock.readLock().lock();
         DatagramPacket packet = Server.clientBuffers.get(clientAddress);
-        //lock.readLock().unlock();
         if (packet != null) {
             return new String(packet.getData(),
                     0, packet.getLength());

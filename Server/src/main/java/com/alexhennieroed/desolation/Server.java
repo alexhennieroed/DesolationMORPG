@@ -1,20 +1,23 @@
 package main.java.com.alexhennieroed.desolation;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import main.java.com.alexhennieroed.desolation.networking.ClientConnector;
 import main.java.com.alexhennieroed.desolation.networking.DatabaseConnector;
+import main.java.com.alexhennieroed.desolation.ui.controller.ServerControlController;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * The main class of the server that interfaces between the UI and the logic
@@ -26,19 +29,25 @@ public class Server extends Application {
     private Stage mainStage;
     private final DatabaseConnector dbconnector = new DatabaseConnector();
     private Map<InetAddress, ClientConnector> clientAddressList = new HashMap<>();
-    private String numberClients;
 
-    public ReadWriteLock lock = new ReentrantReadWriteLock();
+    public static StringProperty numberClients = new SimpleStringProperty();
+    public static StringProperty numberUsers = new SimpleStringProperty();
     public static Map<InetAddress, DatagramPacket> clientBuffers = new HashMap<>();
 
     public static void main(String[] args) {
         launch(args);
+
     }
 
     @Override
-    public void start(Stage stage) {
-        mainStage = stage;
-        mainStage.setTitle("Desolation Server");
+    public void start(Stage stage) throws IOException {
+        //mainStage = stage;
+        //mainStage.setTitle("Desolation Server");
+        //FXMLLoader loader = new FXMLLoader();
+        //loader.setLocation(this.getClass().getResource("./ui/view/ServerControl.fxml"));
+        //mainStage.setScene(new Scene(loader.load()));
+        //ServerControlController controller = loader.getController();
+        //mainStage.show();
         try {
             runServer();
         } catch (IOException e) {
@@ -64,9 +73,7 @@ public class Server extends Application {
                 clientBuffers.put(address, null);
                 clientAddressList.get(address).start();
             } else if (clientAddressList.containsKey(address)) {
-                //lock.writeLock().lock();
                 clientBuffers.put(address, packet);
-                //lock.writeLock().unlock();
             } else {
                 buf = "Error: Too many connections.".getBytes();
                 DatagramPacket errorpacket =
@@ -78,7 +85,8 @@ public class Server extends Application {
                     clientAddressList.remove(addr);
                 }
             }
-            numberClients = Integer.toString(clientAddressList.size());
+            numberClients.setValue(Integer.toString(clientAddressList.size()));
+            numberUsers.setValue(Integer.toString(dbconnector.getNumusers()));
         }
     }
 
