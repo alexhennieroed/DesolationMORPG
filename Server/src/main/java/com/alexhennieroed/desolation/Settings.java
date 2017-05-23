@@ -16,7 +16,7 @@ public class Settings {
     public static final int MAX_USER_COUNT = 100;
 
     //Server info
-    public static final int MAX_THREADS = 10;
+    public static final int MAX_THREADS = 5;
     public static final int SERVER_PORT = 4545;
 
 }
