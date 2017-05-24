@@ -1,4 +1,4 @@
-package main.java.com.alexhennieroed.desolation.ui.controller;
+package main.java.com.alexhennieroed.desolationclient.ui.controller;
 
 import javafx.fxml.FXML;
 

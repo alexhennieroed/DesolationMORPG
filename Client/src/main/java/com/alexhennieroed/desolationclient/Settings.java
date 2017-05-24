@@ -1,4 +1,4 @@
-package main.java.com.alexhennieroed.desolation;
+package main.java.com.alexhennieroed.desolationclient;
 
 /**
  * Contains settings for the client

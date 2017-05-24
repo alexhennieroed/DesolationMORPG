@@ -1,16 +1,13 @@
-package main.java.com.alexhennieroed.desolation;
+package main.java.com.alexhennieroed.desolationclient;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-import main.java.com.alexhennieroed.desolation.networking.ServerConnector;
-import main.java.com.alexhennieroed.desolation.ui.controller.Controller;
-import main.java.com.alexhennieroed.desolation.ui.controller.HomeScreenController;
-import main.java.com.alexhennieroed.desolation.ui.controller.LoginScreenController;
+import main.java.com.alexhennieroed.desolationclient.game.ClientGameThread;
+import main.java.com.alexhennieroed.desolationclient.networking.ServerConnector;
+import main.java.com.alexhennieroed.desolationclient.ui.controller.Controller;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -25,6 +22,7 @@ public class Client extends Application {
     private Stage mainStage;
     private DatagramSocket socket;
     private ServerConnector serverConnector;
+    private ClientGameThread gameThread;
     private ClientState state;
     private Controller currentController;
 
@@ -86,12 +84,28 @@ public class Client extends Application {
     }
 
     /**
+     * Returns the client game thread
+     * @return the client game thread
+     */
+    public ClientGameThread getGameThread() { return gameThread; }
+
+    /**
+     * Starts a new ClientGameThread
+     */
+    public void startClientGameThread() {
+        gameThread = new ClientGameThread(this);
+        gameThread.start();
+    }
+
+    /**
      * Sets the client's state
      * @param state the state to set
      */
     public void setState(ClientState state) { this.state = state;}
 
     public ClientState getState() { return state; }
+
+    public Controller getCurrentController() { return currentController; }
 
     /**
      * Closes the client
@@ -114,6 +128,7 @@ public class Client extends Application {
         IN_STARTUP(),
         IN_GAME(),
         IN_INIT_SCREEN(),
+        IN_CHAR_SCREEN(),
         ATTEMPTING_CONNECTION(),
         CONNECTION_TIMEOUT();
 
@@ -134,13 +149,15 @@ public class Client extends Application {
                 }
                 state = Client.this.getState();
                 if (lastState != state) {
-                    System.out.println("State change!");
                     if (state == ClientState.CONNECTION_TIMEOUT) {
                         Platform.runLater(() -> currentController.timeoutSetup());
                     } else if (state == ClientState.IN_INIT_SCREEN) {
                         Platform.runLater(() -> currentController.enableButtons());
+                    } else if (state == ClientState.IN_CHAR_SCREEN) {
+                        Platform.runLater(() -> currentController.updateCharacterLabel(
+                                        serverConnector.getCurrentCharacter().toString()));
                     } else if (state == ClientState.IN_GAME) {
-                        //TODO
+                        startClientGameThread();
                     } else if (state == ClientState.ATTEMPTING_CONNECTION) {
                         //TODO
                     } else if (state == ClientState.IN_STARTUP) {

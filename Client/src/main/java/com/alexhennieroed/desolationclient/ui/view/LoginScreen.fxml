@@ -11,16 +11,16 @@
 <?import javafx.scene.text.Font?>
 
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.alexhennieroed.desolation.ui.controller.NewUserScreenController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.alexhennieroed.desolationclient.ui.controller.LoginScreenController">
    <bottom>
       <HBox prefHeight="28.0" prefWidth="800.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" onAction="#makeUser" text="Create User">
+            <Button mnemonicParsing="false" onAction="#login" text="Log In">
                <HBox.margin>
                   <Insets bottom="5.0" left="5.0" right="10.0" top="5.0" />
                </HBox.margin>
             </Button>
-            <Label fx:id="statusLabel">
+            <Label fx:id="loginStatusLabel">
                <HBox.margin>
                   <Insets left="5.0" top="10.0" />
                </HBox.margin>

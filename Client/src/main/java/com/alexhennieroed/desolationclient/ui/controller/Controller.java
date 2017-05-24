@@ -1,6 +1,6 @@
-package main.java.com.alexhennieroed.desolation.ui.controller;
+package main.java.com.alexhennieroed.desolationclient.ui.controller;
 
-import main.java.com.alexhennieroed.desolation.Client;
+import main.java.com.alexhennieroed.desolationclient.Client;
 
 /**
  * Generic controller class
@@ -31,6 +31,10 @@ public class Controller {
 
     public void timeoutSetup() {
         System.out.println("Timeout in the wrong controller.");
+    }
+
+    public void updateCharacterLabel(String characterName) {
+        System.out.println("CharLabel Update in the wrong controller;");
     }
 
 }

@@ -1,16 +1,17 @@
-package main.java.com.alexhennieroed.desolation.networking;
+package main.java.com.alexhennieroed.desolationclient.networking;
 
 import javafx.application.Platform;
-import main.java.com.alexhennieroed.desolation.Client;
-import main.java.com.alexhennieroed.desolation.Settings;
-import sun.plugin2.os.windows.SECURITY_ATTRIBUTES;
+import main.java.com.alexhennieroed.desolationclient.Client;
+import main.java.com.alexhennieroed.desolationclient.Settings;
+import main.java.com.alexhennieroed.desolationclient.game.model.Character;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Connects the client to the server
@@ -23,6 +24,9 @@ public class ServerConnector extends Thread {
     private final DatagramSocket socket;
     private final int port;
     private final Client myClient;
+
+    private Character currentCharacter;
+
     /**
      * Creates a new ServerConnector
      * @param socket the socket to connect to
@@ -52,13 +56,24 @@ public class ServerConnector extends Thread {
                     System.out.println(received);
                     if (received.equals("login_success") ||
                             received.equals("make_user_success")) {
-                        myClient.setState(Client.ClientState.IN_GAME);
-                        Platform.runLater(() -> myClient.setScreen("GameScreen"));
+                        myClient.setState(Client.ClientState.IN_CHAR_SCREEN);
+                        Platform.runLater(() -> myClient.setScreen("CharacterScreen"));
+                    } else if (received.contains("char_data")) {
+                        String[] charData = received.split(":");
+                        List<String> charDataList = new ArrayList<>();
+                        for (int i = 1; i < charData.length; i++) {
+                            charDataList.add(charData[i]);
+                        }
+                        Character theChar = new Character(charDataList);
+                        currentCharacter = theChar;
                     } else if (received.contains("failure")) {
                         System.out.println(received);
                     } else if (received.equals("logout_success")) {
                         myClient.setState(Client.ClientState.IN_INIT_SCREEN);
                         Platform.runLater(() -> myClient.setScreen("HomeScreen"));
+                    } else if (received.equals("make_character_success")) {
+                        Platform.runLater(() -> myClient.getCurrentController()
+                                .updateCharacterLabel(currentCharacter.toString()));
                     }
                 }
             }
@@ -120,6 +135,10 @@ public class ServerConnector extends Thread {
         socket.send(sendPacket);
     }
 
+    /**
+     * A public method that calls sendPacket after checking the data
+     * @param data the data to send
+     */
     public void sendData(String data) {
         byte[] buf = new byte[256];
         //TODO
@@ -130,5 +149,11 @@ public class ServerConnector extends Thread {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Returns the current character
+     * @return the current character
+     */
+    public Character getCurrentCharacter() { return currentCharacter; }
 
 }

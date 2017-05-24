@@ -1,10 +1,8 @@
-package main.java.com.alexhennieroed.desolation.ui.controller;
+package main.java.com.alexhennieroed.desolationclient.ui.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-
-import java.io.IOException;
 
 /**
  * Controls the NewUserScreen

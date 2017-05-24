@@ -1,9 +1,9 @@
-package main.java.com.alexhennieroed.desolation.ui.controller;
+package main.java.com.alexhennieroed.desolationclient.ui.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import main.java.com.alexhennieroed.desolation.Client;
+import main.java.com.alexhennieroed.desolationclient.Client;
 
 /**
  * Controls the HomeScreen
