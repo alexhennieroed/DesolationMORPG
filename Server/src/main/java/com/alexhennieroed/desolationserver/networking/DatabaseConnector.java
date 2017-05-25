@@ -13,6 +13,7 @@ import main.java.com.alexhennieroed.desolationserver.Server;
 import main.java.com.alexhennieroed.desolationserver.Settings;
 import main.java.com.alexhennieroed.desolationserver.game.model.Character;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.List;
@@ -65,7 +66,7 @@ public class DatabaseConnector {
         List userList = new ArrayList();
         MongoCursor<Document> cursor = usercol.find().projection(excludeId()).iterator();
         while (cursor.hasNext()) {
-            List list = new ArrayList(cursor.next().values());
+            List<Object> list = new ArrayList<>(cursor.next().values());
             User user = new User((String) list.get(0), (String) list.get(1));
             user.setCharacter(getCharacter((ObjectId) list.get(2)));
             userList.add(user);
@@ -92,12 +93,12 @@ public class DatabaseConnector {
     public boolean addUser(User user) {
         if (numusers >= Settings.MAX_USER_COUNT) {
             myServer.getLogger().logDatabaseEvent("Failed to create new user " +
-                user.getUsername() + " because the maximum user count has been reached.");
+                user.getUsername() + "\nbecause the maximum user count has been reached.");
         }
         MongoCursor<Document> cursor = usercol.find(eq("username", user.getUsername())).iterator();
         if (cursor.hasNext()) {
             myServer.getLogger().logDatabaseEvent("Failed to create new user " + user.getUsername()
-                    + " because the username already exists.");
+                    + "\nbecause the username already exists.");
             return false;
         }
         Document doc = new Document("username", user.getUsername())
@@ -145,7 +146,7 @@ public class DatabaseConnector {
             return true;
         } else {
             myServer.getLogger().logDatabaseEvent("Failed to remove user " + user.getUsername() +
-                " because the credentials did not match.");
+                "\nbecause the credentials did not match.");
         }
         return false;
     }
@@ -184,13 +185,13 @@ public class DatabaseConnector {
                 .projection(fields(include("username", "password", "character_id"), excludeId()))
                 .iterator();
         if (cursor.hasNext()) {
-            List list = new ArrayList(cursor.next().values());
+            List<Object> list = new ArrayList<>(cursor.next().values());
             User user = new User((String) list.get(0), (String) list.get(1));
             user.setCharacter(getCharacter((ObjectId) list.get(2)));
             return user;
         }
         myServer.getLogger().logDatabaseEvent("Failed to get user " + username +
-            " because the user does not exist.");
+            "\nbecause the user does not exist.");
         return null;
     }
 
@@ -204,9 +205,10 @@ public class DatabaseConnector {
                 .projection(fields(excludeId()))
                 .iterator();
         if (cursor.hasNext()) {
-            List list = new ArrayList(cursor.next().values());
+            List<Object> list = new ArrayList<>(cursor.next().values());
             return new Character(list);
         }
+        myServer.getLogger().logDatabaseEvent("Failed to get character from _id " + id.toHexString());
         return null;
     }
 
@@ -219,13 +221,13 @@ public class DatabaseConnector {
             usercol.updateOne(eq("username", user.getUsername()),
                     set("password", user.getPassword()));
             MongoCursor<Document> cursor = usercol.find(eq("username", user.getUsername()))
-                    .projection(fields(include("character_id")))
+                    .projection(fields(include("character_id"), excludeId()))
                     .iterator();
             ObjectId id = (ObjectId) new ArrayList<>(cursor.next().values()).get(0);
             updateCharacter(user.getCharacter(), id);
         } else {
             myServer.getLogger().logDatabaseEvent("Failed to update user" + user.getUsername() +
-                " because the credentials did not match.");
+                "\nbecause the credentials did not match.");
         }
     }
 
@@ -235,14 +237,15 @@ public class DatabaseConnector {
      * @param id the character_id in the user document
      */
     private void updateCharacter(Character character, ObjectId id) {
-        charcol.updateOne(eq("_id", id),
-                combine(set("level", character.getLevel()),
-                        set("max_health", character.getMaxHealth()),
-                        set("current_health", character.getCurrentHealth()),
-                        set("max_stamina", character.getMaxStamina()),
-                        set("current_stamina", character.getCurrentStamina()),
-                        set("exp_to_next", character.getExpToNext()),
-                        set("current_exp", character.getCurrentExp())));
+        Bson update = combine(set("name", character.getName()),
+                set("level", character.getLevel()),
+                set("max_health", character.getMaxHealth()),
+                set("current_health", character.getCurrentHealth()),
+                set("max_stamina", character.getMaxStamina()),
+                set("current_stamina", character.getCurrentStamina()),
+                set("exp_to_next", character.getExpToNext()),
+                set("current_exp", character.getCurrentExp()));
+        charcol.updateOne(eq("_id", id), update);
     }
 
     /**

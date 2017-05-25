@@ -1,6 +1,7 @@
 package main.java.com.alexhennieroed.desolationclient.ui.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
@@ -19,6 +20,9 @@ public class LoginScreenController extends Controller {
     private TextField passwordField;
 
     @FXML
+    private Button loginButton;
+
+    @FXML
     public void login() {
         boolean failed = false;
         loginStatusLabel.setText("");
@@ -30,10 +34,17 @@ public class LoginScreenController extends Controller {
             failed = true;
         }
         if (failed) { return; }
+        loginButton.setDisable(true);
         loginStatusLabel.setText("Logging in...");
         String makeUserString = "LOGIN:" + userNameField.getText() +
                 "&" + passwordField.getText();
         myClient.getServerConnector().sendData(makeUserString);
+    }
+
+    @Override
+    public void solveCredentialProblem() {
+        loginStatusLabel.setText("Incorrect username or password.");
+        loginButton.setDisable(false);
     }
 
 }

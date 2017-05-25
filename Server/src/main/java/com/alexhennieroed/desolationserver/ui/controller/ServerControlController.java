@@ -3,6 +3,7 @@ package main.java.com.alexhennieroed.desolationserver.ui.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import main.java.com.alexhennieroed.desolationserver.Server;
+import main.java.com.alexhennieroed.desolationserver.networking.ClientConnector;
 import main.java.com.alexhennieroed.desolationserver.networking.User;
 
 import java.util.Optional;
@@ -15,12 +16,13 @@ import java.util.Optional;
 public class ServerControlController {
 
     private Server myServer = null;
+    private User duser = null;
 
     @FXML
     private ListView<String> logListView;
 
     @FXML
-    private ListView<User> usersListView;
+    private ListView<String> usersListView;
 
     @FXML
     private Label serverStatusLabel;
@@ -43,6 +45,14 @@ public class ServerControlController {
     @FXML
     public void initialize() {
         serverStatusLabel.setText("Running");
+        usersListView.setOnMouseClicked(event -> {
+            String dusername = usersListView.getSelectionModel().getSelectedItem();
+            duser = myServer.getDbconnector().getUser(dusername);
+            if (!duser.isActive()) {
+                deleteButton.setDisable(false);
+            }
+            disconnectButton.setDisable(false);
+        });
     }
 
     @FXML
@@ -56,8 +66,6 @@ public class ServerControlController {
 
     @FXML
     public void deleteUser() {
-        User duser = usersListView.getSelectionModel().getSelectedItem();
-
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Delete User");
         alert.setHeaderText(null);
@@ -71,7 +79,25 @@ public class ServerControlController {
     }
 
     @FXML
-    public void disconnectUser() { System.out.println("Disconnecting user..."); }
+    public void disconnectUser() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Disconnect User");
+        alert.setHeaderText(null);
+        alert.setContentText("Would you like to just disconnect the user or\n" +
+            "would you also like to blacklist them?");
+
+        ButtonType buttonTypeOne = new ButtonType("Disconnect");
+        ButtonType buttonTypeTwo = new ButtonType("Blacklist");
+        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(buttonTypeOne, buttonTypeTwo, buttonTypeCancel);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == buttonTypeOne){
+            myServer.getMainThread().disconnectUser(duser, "admin");
+        } else if (result.get() == buttonTypeTwo) {
+            myServer.getMainThread().disconnectUser(duser, "blacklist");
+        }
+    }
 
     /**
      * Sets the Server for this controller

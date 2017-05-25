@@ -24,6 +24,7 @@ public class ClientConnector extends Thread {
     private InetAddress clientAddress;
     private int clientPort;
     private User currentUser;
+    private boolean disconnected;
 
     /**
      * Creates a new ServerThread
@@ -38,6 +39,7 @@ public class ClientConnector extends Thread {
         this.mainThread = mainThread;
         this.myServer = server;
         this.currentUser = null;
+        this.disconnected = false;
     }
 
     @Override
@@ -46,7 +48,7 @@ public class ClientConnector extends Thread {
             sendPacket("connected");
             myServer.getLogger().logNetworkEvent(clientAddress.toString() +
                 " connected to the server.");
-            while (true) {
+            while (!disconnected) {
                 String received = receivePacket();
                 if (received != null) {
                     if (received.equals("disconnect")) {
@@ -56,7 +58,8 @@ public class ClientConnector extends Thread {
                     } else if (received.contains("LOGIN")) {
                         String[] credentials = received.split(":")[1].split("&");
                         User checkUser = new User(credentials[0], credentials[1]);
-                        if (myServer.getDbconnector().checkUser(checkUser)) {
+                        if (myServer.getDbconnector().checkUser(checkUser) &&
+                                checkBlacklist(checkUser)) {
                             currentUser = myServer.getDbconnector().getUser(credentials[0]);
                             currentUser.setActive(true);
                             myServer.getLogger().logNetworkEvent(currentUser.getUsername() +
@@ -64,10 +67,15 @@ public class ClientConnector extends Thread {
                             sendPacket("login_success");
                             sendPacket(currentUser.getCharacter().toPacketData());
                         } else {
+                            myServer.getLogger().logNetworkEvent(checkUser.getUsername() +
+                                " failed to log in due to incorrect password.");
                             sendPacket("login_failure");
                         }
                     } else if (received.contains("LOGOUT")) {
                         currentUser.setActive(false);
+                        myServer.getDbconnector().updateUser(currentUser);
+                        myServer.getLogger().logDatabaseEvent(currentUser.getUsername() +
+                            " was updated in the database.");
                         myServer.getLogger().logNetworkEvent(currentUser.getUsername() +
                             " logged out.");
                         currentUser = null;
@@ -89,7 +97,8 @@ public class ClientConnector extends Thread {
                         currentUser.setCharacter(new Character(received.split(":")[1]));
                         myServer.getDbconnector().updateUser(currentUser);
                         myServer.getLogger().logDatabaseEvent(currentUser.getUsername() +
-                            " made a new character.");
+                            " made a new character " + currentUser.getCharacter() + ".");
+                        sendPacket(currentUser.getCharacter().toPacketData());
                         sendPacket("make_character_success");
                     }
                 }
@@ -97,6 +106,26 @@ public class ClientConnector extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Checks if the user is blacklisted
+     * @param user the user to check
+     * @return a boolean representing lack of blacklisting
+     */
+    private boolean checkBlacklist(User user) {
+        if (mainThread.getBlacklistUsers().contains(user)) {
+            try {
+                sendPacket("disconnected:blacklist");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            disconnected = true;
+            myServer.getLogger().logNetworkEvent("Blacklisted user " +
+                    user.getUsername() + " was prevented from connecting.");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -128,9 +157,29 @@ public class ClientConnector extends Thread {
     }
 
     /**
+     * A public method that calls sendPacket after checking the data
+     * @param data the data to send
+     */
+    public void sendData(String data) {
+        //TODO
+        //Check that the data is acceptable
+        try {
+            sendPacket(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Returns the current user
      * @return the current user
      */
     public User getCurrentUser() { return currentUser; }
+
+    /**
+     * Sets the value of disconnected
+     * @param disconnected the value to set
+     */
+    public void setDisconnected(boolean disconnected) { this.disconnected = disconnected; }
 
 }

@@ -1,6 +1,7 @@
 package main.java.com.alexhennieroed.desolationclient.networking;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import main.java.com.alexhennieroed.desolationclient.Client;
 import main.java.com.alexhennieroed.desolationclient.Settings;
 import main.java.com.alexhennieroed.desolationclient.game.model.Character;
@@ -64,16 +65,35 @@ public class ServerConnector extends Thread {
                         for (int i = 1; i < charData.length; i++) {
                             charDataList.add(charData[i]);
                         }
-                        Character theChar = new Character(charDataList);
-                        currentCharacter = theChar;
+                        currentCharacter = new Character(charDataList);
                     } else if (received.contains("failure")) {
-                        System.out.println(received);
+                        Platform.runLater(() -> myClient.getCurrentController()
+                            .solveCredentialProblem());
                     } else if (received.equals("logout_success")) {
                         myClient.setState(Client.ClientState.IN_INIT_SCREEN);
                         Platform.runLater(() -> myClient.setScreen("HomeScreen"));
                     } else if (received.equals("make_character_success")) {
                         Platform.runLater(() -> myClient.getCurrentController()
                                 .updateCharacterLabel(currentCharacter.toString()));
+                    } else if (received.contains("disconnected")) {
+                        String message = received.split(":")[0];
+                        if (message.equals("admin")) {
+                            message = "An admin has disconnected you from the server.";
+                        } else if (message.equals("blacklist")) {
+                            message = "An admin has blocked you from the server";
+                        } else if (message.equals("server_closed")) {
+                            message = "The server has been closed.";
+                        }
+
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Disconnected from Server");
+                        alert.setHeaderText(null);
+                        alert.setContentText(message +
+                                "\nYou will be returned to the home screen.");
+                        alert.showAndWait();
+
+                        myClient.setState(Client.ClientState.IN_STARTUP);
+                        Platform.runLater(() -> myClient.setScreen("HomeScreen"));
                     }
                 }
             }

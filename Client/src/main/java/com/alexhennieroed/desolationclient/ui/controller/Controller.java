@@ -34,7 +34,11 @@ public class Controller {
     }
 
     public void updateCharacterLabel(String characterName) {
-        System.out.println("CharLabel Update in the wrong controller;");
+        System.out.println("CharLabel Update in the wrong controller.");
+    }
+
+    public void solveCredentialProblem() {
+        System.out.println("Credential solution in the wrong controller.");
     }
 
 }
