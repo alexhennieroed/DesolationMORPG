@@ -122,7 +122,7 @@ public class ClientConnector extends Thread {
             }
             disconnected = true;
             myServer.getLogger().logNetworkEvent("Blacklisted user " +
-                    user.getUsername() + " was prevented from connecting.");
+                    user.getUsername() + "\nwas prevented from connecting.");
             return false;
         }
         return true;

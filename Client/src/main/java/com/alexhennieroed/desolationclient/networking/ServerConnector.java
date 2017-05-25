@@ -54,7 +54,6 @@ public class ServerConnector extends Thread {
             while (true) {
                 String received = receivePacket(buf);
                 if (received != null) {
-                    System.out.println(received);
                     if (received.equals("login_success") ||
                             received.equals("make_user_success")) {
                         myClient.setState(Client.ClientState.IN_CHAR_SCREEN);
@@ -76,7 +75,7 @@ public class ServerConnector extends Thread {
                         Platform.runLater(() -> myClient.getCurrentController()
                                 .updateCharacterLabel(currentCharacter.toString()));
                     } else if (received.contains("disconnected")) {
-                        String message = received.split(":")[0];
+                        String message = received.split(":")[1];
                         if (message.equals("admin")) {
                             message = "An admin has disconnected you from the server.";
                         } else if (message.equals("blacklist")) {
@@ -84,16 +83,7 @@ public class ServerConnector extends Thread {
                         } else if (message.equals("server_closed")) {
                             message = "The server has been closed.";
                         }
-
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Disconnected from Server");
-                        alert.setHeaderText(null);
-                        alert.setContentText(message +
-                                "\nYou will be returned to the home screen.");
-                        alert.showAndWait();
-
-                        myClient.setState(Client.ClientState.IN_STARTUP);
-                        Platform.runLater(() -> myClient.setScreen("HomeScreen"));
+                        showMessageAndClose(message);
                     }
                 }
             }
@@ -102,6 +92,23 @@ public class ServerConnector extends Thread {
         } finally {
             socket.close();
         }
+    }
+
+    /**
+     * Shows the given message then returns to the home screen
+     * @param message the message to show
+     */
+    public void showMessageAndClose(String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Disconnected from Server");
+            alert.setHeaderText(null);
+            alert.setContentText(message +
+                    "\nYou will be returned to the home screen.");
+            alert.showAndWait();
+        });
+        myClient.setState(Client.ClientState.IN_STARTUP);
+        Platform.runLater(() -> myClient.setScreen("HomeScreen"));
     }
 
     /**
@@ -117,9 +124,11 @@ public class ServerConnector extends Thread {
             if (received.contains("Error")) {
                 System.out.println(received);
                 return false;
-            } else if (received.contains("connected")) {
+            } else if (received.equals("connected")) {
                 myClient.setState(Client.ClientState.IN_INIT_SCREEN);
                 return true;
+            } else if (received.contains("blacklist")) {
+                showMessageAndClose("You have been blocked by the server's blacklist.");
             }
         } catch (SocketTimeoutException e) {
             System.out.println("Error: connection timeout.");

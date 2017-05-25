@@ -71,10 +71,9 @@ public class ServerThread extends Thread {
                             new DatagramPacket(buf, buf.length, packet.getAddress(), packet.getPort());
                     socket.send(sendPacket);
                     myServer.getLogger().logNetworkEvent("Blacklisted address " +
-                        address.toString() + " was prevented from connecting.");
+                        address.toString() + "\nwas prevented from connecting.");
                 } else if (clientAddressList.size() < Settings.MAX_THREADS &&
-                        !clientAddressList.containsKey(address) &&
-                        Arrays.equals(packet.getData(), "connect".getBytes())) {
+                        !clientAddressList.containsKey(address)) {
                     //New thread for a client
                     clientAddressList.put(address,
                             new ClientConnector(socket, packet, this, myServer));

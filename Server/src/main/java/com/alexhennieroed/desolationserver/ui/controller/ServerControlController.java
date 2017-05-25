@@ -45,14 +45,7 @@ public class ServerControlController {
     @FXML
     public void initialize() {
         serverStatusLabel.setText("Running");
-        usersListView.setOnMouseClicked(event -> {
-            String dusername = usersListView.getSelectionModel().getSelectedItem();
-            duser = myServer.getDbconnector().getUser(dusername);
-            if (!duser.isActive()) {
-                deleteButton.setDisable(false);
-            }
-            disconnectButton.setDisable(false);
-        });
+        usersListView.setOnMouseClicked(event -> selectionActions());
     }
 
     @FXML
@@ -61,8 +54,30 @@ public class ServerControlController {
         myServer.close();
     }
 
+    private void selectionActions() {
+        String duserstring = usersListView.getSelectionModel().getSelectedItem();
+        if (duserstring != null) {
+            String dusername = duserstring.split(":")[0];
+            duser = myServer.getDbconnector().getUser(dusername);
+            if (duser != null) {
+                duser = myServer.getMainThread().getUserList().get(
+                        myServer.getMainThread().getUserList().indexOf(duser));
+                if (!duser.isActive()) {
+                    disconnectButton.setDisable(true);
+                    deleteButton.setDisable(false);
+                } else {
+                    disconnectButton.setDisable(false);
+                    deleteButton.setDisable(true);
+                }
+            }
+        }
+    }
+
     @FXML
-    public void forceSave() { System.out.println("Saving users and characters."); }
+    public void forceSave() {
+        myServer.getDbconnector().updateAllUsers(
+                myServer.getMainThread().getUserList());
+    }
 
     @FXML
     public void deleteUser() {
@@ -76,6 +91,7 @@ public class ServerControlController {
         if (result.get() == ButtonType.OK){
             myServer.getDbconnector().removeUser(duser);
         }
+        deleteButton.setDisable(true);
     }
 
     @FXML
@@ -97,6 +113,7 @@ public class ServerControlController {
         } else if (result.get() == buttonTypeTwo) {
             myServer.getMainThread().disconnectUser(duser, "blacklist");
         }
+        disconnectButton.setDisable(true);
     }
 
     /**
