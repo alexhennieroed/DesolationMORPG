@@ -17,13 +17,17 @@ Here are the current capabilities of the software:
   * See the total number of users on line and in the database
   * Add users to and remove them from the database
   * Create new character from a client-provided name
-  * Disconnect users and optionally add them and their IP address to a blacklist (in progress)
-  * Delete disconnected users (in progress)
+  * Disconnect users and optionally add them and their IP address to a blacklist
+  * Delete disconnected users
+  * Send, receive, and display chat messages (in progress)
+  * Maintain a log of all messages (in progress)
   
 * Client
   * Connect to the server, then log in or make a new user
   * Maintain a ClientState that is updated according to the current activities
   * Create a new character from a supplied name
+  * Send, receive, and display chat messages (in progress)
+  * Remove a chat message after a specified time
 
 ## Game Information (not final)
 * Game World
