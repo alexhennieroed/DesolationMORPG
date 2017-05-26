@@ -84,6 +84,9 @@ public class ServerConnector extends Thread {
                             message = "The server has been closed.";
                         }
                         showMessageAndClose(message);
+                    } else if (received.contains("server_message")) {
+                        String message = received.split(":")[1];
+                        System.out.println(message);
                     }
                 }
             }

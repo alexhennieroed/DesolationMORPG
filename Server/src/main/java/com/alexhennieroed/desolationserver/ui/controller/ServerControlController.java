@@ -25,6 +25,9 @@ public class ServerControlController {
     private ListView<String> usersListView;
 
     @FXML
+    private ListView<String> chatListView;
+
+    @FXML
     private Label serverStatusLabel;
 
     @FXML
@@ -43,6 +46,12 @@ public class ServerControlController {
     private Button disconnectButton;
 
     @FXML
+    private Button sendMessageButton;
+
+    @FXML
+    private TextField messageField;
+
+    @FXML
     public void initialize() {
         serverStatusLabel.setText("Running");
         usersListView.setOnMouseClicked(event -> selectionActions());
@@ -52,6 +61,12 @@ public class ServerControlController {
     public void closeServer() {
         serverStatusLabel.setText("Closing...");
         myServer.close();
+    }
+
+    @FXML
+    public void forceSave() {
+        myServer.getDbconnector().updateAllUsers(
+                myServer.getMainThread().getUserList());
     }
 
     private void selectionActions() {
@@ -71,12 +86,6 @@ public class ServerControlController {
                 }
             }
         }
-    }
-
-    @FXML
-    public void forceSave() {
-        myServer.getDbconnector().updateAllUsers(
-                myServer.getMainThread().getUserList());
     }
 
     @FXML
@@ -114,6 +123,12 @@ public class ServerControlController {
             myServer.getMainThread().disconnectUser(duser, "blacklist");
         }
         disconnectButton.setDisable(true);
+    }
+
+    @FXML
+    public void sendMessage() {
+        myServer.getMainThread().sendToAllConnections(messageField.getText());
+        messageField.setText("");
     }
 
     /**

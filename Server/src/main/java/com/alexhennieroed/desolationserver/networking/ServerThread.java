@@ -34,6 +34,7 @@ public class ServerThread extends Thread {
     private List<User> userList = new ArrayList<>();
     private List<InetAddress> blacklistAddresses = new ArrayList<>();
     private List<User> blacklistUsers = new ArrayList<>();
+    private List<String> messageLog = new ArrayList<>();
 
     public ServerThread(Server server) {
         this.myServer = server;
@@ -95,6 +96,13 @@ public class ServerThread extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void sendToAllConnections(String message) {
+        messageLog.add("[SERVER] " + message);
+        for (InetAddress address : clientAddressList.keySet()) {
+            clientAddressList.get(address).sendData("server_message:" + message);
         }
     }
 
