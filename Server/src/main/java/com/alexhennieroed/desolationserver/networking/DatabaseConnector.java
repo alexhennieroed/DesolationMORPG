@@ -16,6 +16,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -31,7 +32,9 @@ public class DatabaseConnector {
     private MongoDatabase database;
     private MongoCollection<Document> usercol;
     private MongoCollection<Document> charcol;
+
     private int numusers;
+    private String lastSave;
 
     /**
      * Connects to or creates the database
@@ -39,6 +42,7 @@ public class DatabaseConnector {
     public DatabaseConnector(Server server) {
         this.myServer = server;
         numusers = 0;
+        lastSave = "Init";
         connect();
         usercol = database.getCollection("users");
         charcol = database.getCollection("characters");
@@ -83,6 +87,7 @@ public class DatabaseConnector {
             updateUser(u);
         }
         myServer.getLogger().logDatabaseEvent("Updated all users in database.");
+        lastSave = LocalDateTime.now().toString().split("\\.")[0].replace('T', '@');
     }
 
     /**
@@ -93,7 +98,7 @@ public class DatabaseConnector {
     public boolean addUser(User user) {
         if (numusers >= Settings.MAX_USER_COUNT) {
             myServer.getLogger().logDatabaseEvent("Failed to create new user " +
-                user.getUsername() + "\nbecause the maximum user count has been reached.");
+                user.getUsername() + " because the maximum user count has been reached.");
         }
         MongoCursor<Document> cursor = usercol.find(eq("username", user.getUsername())).iterator();
         if (cursor.hasNext()) {
@@ -146,7 +151,7 @@ public class DatabaseConnector {
             return true;
         } else {
             myServer.getLogger().logDatabaseEvent("Failed to remove user " + user.getUsername() +
-                "\nbecause the credentials did not match.");
+                " because the credentials did not match.");
         }
         return false;
     }
@@ -191,7 +196,7 @@ public class DatabaseConnector {
             return user;
         }
         myServer.getLogger().logDatabaseEvent("Failed to get user " + username +
-            "\nbecause the user does not exist.");
+            " because the user does not exist.");
         return null;
     }
 
@@ -227,7 +232,7 @@ public class DatabaseConnector {
             updateCharacter(user.getCharacter(), id);
         } else {
             myServer.getLogger().logDatabaseEvent("Failed to update user" + user.getUsername() +
-                "\nbecause the credentials did not match.");
+                " because the credentials did not match.");
         }
     }
 
@@ -253,5 +258,11 @@ public class DatabaseConnector {
      * @return the number of users
      */
     public int getNumusers() { return numusers; }
+
+    /**
+     * Returns the last save of the database
+     * @return the last save
+     */
+    public String getLastSave() { return lastSave; }
 
 }

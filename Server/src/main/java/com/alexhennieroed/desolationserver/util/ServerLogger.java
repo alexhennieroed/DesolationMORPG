@@ -3,6 +3,7 @@ package main.java.com.alexhennieroed.desolationserver.util;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,30 +18,36 @@ public class ServerLogger {
     private List<String> logList = new ArrayList<>();
 
     public void logDatabaseEvent(String eventDescrip) {
-        logList.add("[DATABASE] " + eventDescrip);
+        logList.add(LocalDateTime.now().toString().split("\\.")[0].replace('T', '@') +
+                " | [DATABASE] " + eventDescrip);
     }
 
     public void logNetworkEvent(String eventDescrip) {
-        logList.add("[NETWORK] " + eventDescrip);
+        logList.add(LocalDateTime.now().toString().split("\\.")[0].replace('T', '@') +
+                " | [NETWORK] " + eventDescrip);
     }
 
     public void logGameEvent(String eventDescrip) {
-        logList.add("[GAME] " + eventDescrip);
+        logList.add(LocalDateTime.now().toString().split("\\.")[0].replace('T', '@') +
+                " | [GAME] " + eventDescrip);
     }
 
     public void logException(Exception e) {
-        logList.add("[EXCEPTION] " + e.getMessage());
+        logList.add(LocalDateTime.now().toString().split("\\.")[0].replace('T', '@') +
+                "| [EXCEPTION] " + e.getMessage());
         for (StackTraceElement elem : e.getStackTrace()) {
             logList.add(elem.toString());
         }
     }
 
     public void logServerError(String errorDescrip) {
-        logList.add("[ERROR] " + errorDescrip);
+        logList.add(LocalDateTime.now().toString().split("\\.")[0].replace('T', '@') +
+                " | [ERROR] " + errorDescrip);
     }
 
     public void logServerEvent(String eventDescrip) {
-        logList.add("[SERVER] " + eventDescrip);
+        logList.add(LocalDateTime.now().toString().split("\\.")[0].replace('T', '@') +
+                " | [SERVER] " + eventDescrip);
     }
 
     public ListProperty getLogListProperty() { return logListProperty; }

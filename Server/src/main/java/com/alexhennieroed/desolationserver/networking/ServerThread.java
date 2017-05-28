@@ -15,6 +15,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * The thread for the server
@@ -28,13 +30,20 @@ public class ServerThread extends Thread {
     private Map<InetAddress, ClientConnector> clientAddressList = new HashMap<>();
     private StringProperty numberClients = new SimpleStringProperty();
     private StringProperty numberUsers = new SimpleStringProperty();
+    private StringProperty lastSave = new SimpleStringProperty();
+    private StringProperty gameTime = new SimpleStringProperty();
+    private StringProperty status = new SimpleStringProperty();
     private Map<InetAddress, DatagramPacket> clientBuffers = new HashMap<>();
     private Map<InetAddress, User> clientCurrentUsers = new HashMap<>();
     private ListProperty userListUpdater = new SimpleListProperty();
     private List<User> userList = new ArrayList<>();
     private List<InetAddress> blacklistAddresses = new ArrayList<>();
     private List<User> blacklistUsers = new ArrayList<>();
+    private ListProperty<String> chatUpdater = new SimpleListProperty<>();
     private List<String> messageLog = new ArrayList<>();
+    private List<String> logDisplayList = new ArrayList<>();
+
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public ServerThread(Server server) {
         this.myServer = server;
@@ -44,12 +53,13 @@ public class ServerThread extends Thread {
     @Override
     public void run() {
         myServer.getLogger().logServerEvent("Server has been started.");
+        //Thread to run an automatic update of all users in the database
         new Thread() {
             @Override
             public void run() {
                 while (true) {
                     try {
-                        sleep(10 * 60 * 1000);
+                        sleep(Settings.UPDATE_TIME);
                         myServer.getDbconnector().updateAllUsers(userList);
                     } catch (InterruptedException e) {
                         myServer.getLogger().logException(e);
@@ -61,6 +71,7 @@ public class ServerThread extends Thread {
             DatagramSocket socket = new DatagramSocket(Settings.SERVER_PORT);
             ServerConsoleUpdateThread update = new ServerConsoleUpdateThread();
             update.start();
+            //Get a packet and send it to the proper destination
             while (true) {
                 byte[] buf = new byte[256];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
@@ -99,13 +110,50 @@ public class ServerThread extends Thread {
         }
     }
 
+    /**
+     * Sends a chat message to all connected clients
+     * @param message the message to send
+     */
     public void sendToAllConnections(String message) {
-        messageLog.add("[SERVER] " + message);
+        if (!message.contains("game_update")) {
+            message = "server_message:" + processString(message, 40);
+            lock.writeLock().lock();
+            messageLog.add(message);
+            lock.writeLock().unlock();
+        }
         for (InetAddress address : clientAddressList.keySet()) {
-            clientAddressList.get(address).sendData("server_message:" + message);
+            clientAddressList.get(address).sendData(message);
         }
     }
 
+    /**
+     * Turns the string into a chat-friendly size
+     * @param string the string to process
+     * @return the chat-friendly string
+     */
+    private String processString(String string, int lineLength) {
+        String[] words = string.split(" ");
+        List<String> lineList = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (builder.length() > lineLength) {
+                builder.append("\n");
+                lineList.add(builder.toString());
+                builder.delete(0, builder.length());
+            }
+            builder.append(word).append(" ");
+        }
+        lineList.add(builder.toString().trim());
+        builder.delete(0, builder.length());
+        lineList.forEach(word -> builder.append(word));
+        return builder.toString();
+    }
+
+    /**
+     * Disconects the selected user and send them a message with the reason
+     * @param user the user to disconnect
+     * @param reason the reason for disconnection
+     */
     public void disconnectUser(User user, String reason) {
         InetAddress address = getUserAddress(user);
         if (address != null) {
@@ -137,10 +185,34 @@ public class ServerThread extends Thread {
     }
 
     /**
+     * Returns the lastSave string property
+     * @return the StringProperty for lastSave
+     */
+    public StringProperty lastSaveProperty() { return lastSave; }
+
+    /**
+     * Returns the gameTime string property
+     * @return the StringProperty for gameTime
+     */
+    public StringProperty gameTimeProperty() { return gameTime; }
+
+    /**
+     * Returns the status string property
+     * @return the StringProperty for status
+     */
+    public StringProperty statusProperty() { return status; }
+
+    /**
      * Returns the userListUpdater list property
      * @return the ListProperty for userListUpdater
      */
     public ListProperty getUserListUpdater() { return userListUpdater; }
+
+    /**
+     * Returns the chatUpdater list property
+     * @return the ListProperty for chatUpdater
+     */
+    public ListProperty getChatUpdater() { return chatUpdater; }
 
     /**
      * Returns the clientBuffers map
@@ -170,10 +242,18 @@ public class ServerThread extends Thread {
         return null;
     }
 
+    /**
+     * Retuns the list of blacklisted addresses
+     * @return the list of blacklisted addresses
+     */
     public List<InetAddress> getBlacklistAddresses() {
         return blacklistAddresses;
     }
 
+    /**
+     * Returns the list of blacklisted users
+     * @return the list of blacklisted users
+     */
     public List<User> getBlacklistUsers() {
         return blacklistUsers;
     }
@@ -217,6 +297,7 @@ public class ServerThread extends Thread {
         public void run() {
             int loopCount = 5;
             while (true) {
+                //If a client has disconnected, remove them from the lists
                 for (InetAddress addr : clientAddressList.keySet()) {
                     if (!clientAddressList.get(addr).isAlive()) {
                         clientAddressList.remove(addr);
@@ -224,14 +305,31 @@ public class ServerThread extends Thread {
                         clientBuffers.remove(addr);
                     }
                 }
+                //Update important information every loop
+                if (logDisplayList.size() < myServer.getLogger().getLogList().size()) {
+                    logDisplayList.clear();
+                    myServer.getLogger().getLogList().forEach(message -> logDisplayList.add(processString(message, 55)));
+                }
                 Platform.runLater(
                         () -> {
                             numberClients.setValue(Integer.toString(clientAddressList.size()));
                             numberUsers.setValue(Integer.toString(myServer.getDbconnector().getNumusers()));
                             myServer.getLogger().getLogListProperty().setValue(
-                                    FXCollections.observableArrayList(myServer.getLogger().getLogList()));
+                                    FXCollections.observableArrayList(logDisplayList));
+                            lock.readLock().lock();
+                            chatUpdater.setValue(FXCollections.observableArrayList(messageLog));
+                            lock.readLock().unlock();
+                            lastSave.setValue(myServer.getDbconnector().getLastSave());
+                            if (myServer.getGameThread().isAlive()) {
+                                status.setValue("Running");
+                                gameTime.setValue(myServer.getGameThread().getCurrentGameTime());
+                            } else {
+                                status.setValue("Stopped");
+                                gameTime.setValue("");
+                            }
                         }
                 );
+                //Update user information every 5 loops
                 if (loopCount >= 5) {
                     Platform.runLater(() -> {
                         userList = myServer.getDbconnector().getAllUsers();
@@ -251,6 +349,7 @@ public class ServerThread extends Thread {
                     loopCount++;
                 }
                 try {
+                    //Stop the thread for one second before continuing
                     sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();

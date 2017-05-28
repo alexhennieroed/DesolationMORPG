@@ -14,6 +14,7 @@ public class Settings {
     public static final String DATABASE_USERNAME = "username";
     public static final char[] DATABASE_PASSWORD = "password".toCharArray();
     public static final int MAX_USER_COUNT = 100;
+    public static final int UPDATE_TIME = 10 * 60 * 1000;
 
     //Server info
     public static final int MAX_THREADS = 5;

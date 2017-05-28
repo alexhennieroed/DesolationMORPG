@@ -25,6 +25,7 @@ public class ClientConnector extends Thread {
     private int clientPort;
     private User currentUser;
     private boolean disconnected;
+    private boolean isInGame;
 
     /**
      * Creates a new ServerThread
@@ -100,6 +101,24 @@ public class ClientConnector extends Thread {
                             " made a new character " + currentUser.getCharacter() + ".");
                         sendPacket(currentUser.getCharacter().toPacketData());
                         sendPacket("make_character_success");
+                    } else if (received.contains("client_message")) {
+                        String message = "#" + currentUser.getUsername() +
+                                " - " + received.split(":")[1];
+                        myServer.getMainThread().sendToAllConnections(message);
+                    } else if (received.equals("PLAY")) {
+                        if (myServer.getGameThread().isAlive()) {
+                            myServer.getLogger().logGameEvent(currentUser.toString() +
+                                    " has joined the world.");
+                            isInGame = true;
+                            sendPacket("game_start");
+                        } else {
+                            sendPacket("game_not_started");
+                        }
+                    } else if (received.equals("STOP_PLAY")) {
+                        myServer.getLogger().logGameEvent(currentUser.toString() +
+                                " has left the world.");
+                        isInGame = false;
+                        sendPacket("game_end");
                     }
                 }
             }
@@ -161,12 +180,12 @@ public class ClientConnector extends Thread {
      * @param data the data to send
      */
     public void sendData(String data) {
-        //TODO
-        //Check that the data is acceptable
-        try {
-            sendPacket(data);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (isInGame) {
+            try {
+                sendPacket(data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

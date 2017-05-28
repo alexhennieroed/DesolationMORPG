@@ -23,6 +23,7 @@ public class Character extends Actor {
      * @param name the character's name
      */
     public Character(String name) {
+        super(0,0);
         this.name = name;
         this.level = 1;
         this.maxHealth = 10;
@@ -38,6 +39,7 @@ public class Character extends Actor {
      * @param list the list of data
      */
     public Character(List list) throws IllegalArgumentException {
+        super(0,0);
         if (list.size() != 8) {
             throw new IllegalArgumentException("List doesn't contain the proper number of elements.");
         }
@@ -49,6 +51,12 @@ public class Character extends Actor {
         this.currentStamina = (Integer) list.get(5);
         this.expToNext = (Integer) list.get(6);
         this.currentExp = (Integer) list.get(7);
+    }
+
+    public Character(String name, int x, int y) {
+        this(name);
+        this.worldX = x;
+        this.worldY = y;
     }
 
     /**

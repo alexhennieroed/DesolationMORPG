@@ -17,6 +17,9 @@ public class CharacterScreenController extends Controller {
     private Label characterNameLabel;
 
     @FXML
+    private Label statusLabel;
+
+    @FXML
     private TextField characterNameField;
 
     @FXML
@@ -29,14 +32,14 @@ public class CharacterScreenController extends Controller {
     public void playGame() {
         actionButton.setDisable(true);
         logoutButton.setDisable(true);
-        myClient.setState(Client.ClientState.IN_GAME);
-        myClient.setScreen("GameScreen");
+        myClient.getServerConnector().sendData("PLAY");
     }
 
     @FXML
     public void logout() {
         actionButton.setDisable(true);
         logoutButton.setDisable(true);
+        statusLabel.setText("Joining game...");
         myClient.getServerConnector().sendData("LOGOUT");
     }
 
@@ -70,6 +73,13 @@ public class CharacterScreenController extends Controller {
         actionButton.setDisable(true);
         myClient.getServerConnector().sendData(
                 "MAKE CHAR:" + characterNameField.getText());
+    }
+
+    @Override
+    public void enableButtons() {
+        actionButton.setDisable(false);
+        logoutButton.setDisable(false);
+        statusLabel.setText("Server game is not running right now.");
     }
 
 }

@@ -56,6 +56,12 @@ public class Server extends Application {
     public ServerThread getMainThread() { return mainThread; }
 
     /**
+     * Returns the game thread of the server
+     * @return the game thread
+     */
+    public ServerGameThread getGameThread() { return gameThread; }
+
+    /**
      * Returns the DatabaseConnector
      * @return the DatabaseConnector
      */

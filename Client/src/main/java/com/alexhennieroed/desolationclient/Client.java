@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 import main.java.com.alexhennieroed.desolationclient.game.ClientGameThread;
 import main.java.com.alexhennieroed.desolationclient.networking.ServerConnector;
 import main.java.com.alexhennieroed.desolationclient.ui.controller.Controller;
+import main.java.com.alexhennieroed.desolationclient.ui.controller.GameScreenController;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -130,7 +131,8 @@ public class Client extends Application {
         IN_INIT_SCREEN(),
         IN_CHAR_SCREEN(),
         ATTEMPTING_CONNECTION(),
-        CONNECTION_TIMEOUT();
+        CONNECTION_TIMEOUT(),
+        LOADING()
 
     }
 
@@ -144,26 +146,36 @@ public class Client extends Application {
             while(true) {
                 try {
                     sleep(100);
+                    state = Client.this.getState();
+                    if (lastState != state) {
+                        if (lastState == ClientState.IN_GAME) {
+                            gameThread.setRunning(false);
+                        }
+                        if (state == ClientState.CONNECTION_TIMEOUT) {
+                            Platform.runLater(() -> currentController.timeoutSetup());
+                        } else if (state == ClientState.IN_INIT_SCREEN) {
+                            Platform.runLater(() -> currentController.enableButtons());
+                        } else if (state == ClientState.IN_CHAR_SCREEN) {
+                            Platform.runLater(() -> currentController.updateCharacterLabel(
+                                        serverConnector.getCurrentCharacter().toString()));
+                        } else if (state == ClientState.LOADING) {
+                            while(!(getCurrentController() instanceof GameScreenController)) {
+                                sleep(1);
+                            }
+                            startClientGameThread();
+                            Platform.runLater(() -> getCurrentController().bindValues());
+                            state = ClientState.IN_GAME;
+                        } else if (state == ClientState.IN_GAME) {
+                            //TODO
+                        } else if (state == ClientState.ATTEMPTING_CONNECTION) {
+                            //TODO
+                        } else if (state == ClientState.IN_STARTUP) {
+                            //TODO
+                        }
+                        lastState = state;
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
-                state = Client.this.getState();
-                if (lastState != state) {
-                    if (state == ClientState.CONNECTION_TIMEOUT) {
-                        Platform.runLater(() -> currentController.timeoutSetup());
-                    } else if (state == ClientState.IN_INIT_SCREEN) {
-                        Platform.runLater(() -> currentController.enableButtons());
-                    } else if (state == ClientState.IN_CHAR_SCREEN) {
-                        Platform.runLater(() -> currentController.updateCharacterLabel(
-                                        serverConnector.getCurrentCharacter().toString()));
-                    } else if (state == ClientState.IN_GAME) {
-                        startClientGameThread();
-                    } else if (state == ClientState.ATTEMPTING_CONNECTION) {
-                        //TODO
-                    } else if (state == ClientState.IN_STARTUP) {
-                        //TODO
-                    }
-                    lastState = state;
                 }
             }
         }

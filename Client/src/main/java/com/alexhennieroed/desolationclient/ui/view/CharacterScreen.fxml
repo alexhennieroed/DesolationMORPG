@@ -30,6 +30,7 @@
             </Label>
             <Button fx:id="actionButton" layoutX="377.0" layoutY="144.0" mnemonicParsing="false" onAction="#playGame" text="Play" />
             <TextField fx:id="characterNameField" alignment="CENTER" disable="true" layoutX="263.0" layoutY="104.0" prefHeight="31.0" prefWidth="275.0" promptText="Enter your character's name." visible="false" />
+            <Label fx:id="statusLabel" layoutX="383.0" layoutY="197.0" />
          </children>
       </Pane>
    </center>

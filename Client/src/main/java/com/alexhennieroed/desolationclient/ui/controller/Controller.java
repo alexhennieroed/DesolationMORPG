@@ -41,4 +41,12 @@ public class Controller {
         System.out.println("Credential solution in the wrong controller.");
     }
 
+    public void bindValues() {
+        System.out.println("Binding values in the wrong controller.");
+    }
+
+    public void showHideSection() {
+        System.out.println("Showing and hiding in the wrong controller.");
+    }
+
 }

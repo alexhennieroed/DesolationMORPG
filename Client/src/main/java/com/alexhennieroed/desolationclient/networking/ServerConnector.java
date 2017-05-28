@@ -12,7 +12,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Connects the client to the server
@@ -84,17 +86,31 @@ public class ServerConnector extends Thread {
                             message = "The server has been closed.";
                         }
                         showMessageAndClose(message);
-                    } else if (received.contains("server_message")) {
+                    } else if (received.contains("server_message") &&
+                            myClient.getState() == Client.ClientState.IN_GAME) {
+                        System.out.println(received);
                         String message = received.split(":")[1];
-                        System.out.println(message);
+                        myClient.getGameThread().addNewMessage(message);
+                    } else if (received.contains("game_start")) {
+                        Platform.runLater(() -> myClient.setScreen("GameScreen"));
+                        myClient.setState(Client.ClientState.LOADING);
+                    } else if (received.equals("game_not_started")) {
+                        Platform.runLater(() -> myClient.getCurrentController().enableButtons());
+                    } else if (received.contains("game_update") &&
+                            myClient.getState() == Client.ClientState.IN_GAME) {
+                        String[] updateInfo = received.split(":");
+                        myClient.getGameThread().setCurrentTime(updateInfo[1]);
+                    } else if (received.equals("game_end") &&
+                            myClient.getState() == Client.ClientState.IN_GAME) {
+                        myClient.setState(Client.ClientState.IN_CHAR_SCREEN);
+                        Platform.runLater(() -> myClient.setScreen("CharacterScreen"));
                     }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            socket.close();
         }
+        socket.close();
     }
 
     /**

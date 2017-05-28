@@ -40,26 +40,27 @@ public class ServerControlController {
     private Label lastSaveLabel;
 
     @FXML
+    private Label gameTimeLabel;
+
+    @FXML
     private Button deleteButton;
 
     @FXML
     private Button disconnectButton;
 
     @FXML
-    private Button sendMessageButton;
+    private Button gameControlButton;
 
     @FXML
     private TextField messageField;
 
     @FXML
     public void initialize() {
-        serverStatusLabel.setText("Running");
         usersListView.setOnMouseClicked(event -> selectionActions());
     }
 
     @FXML
     public void closeServer() {
-        serverStatusLabel.setText("Closing...");
         myServer.close();
     }
 
@@ -127,8 +128,21 @@ public class ServerControlController {
 
     @FXML
     public void sendMessage() {
-        myServer.getMainThread().sendToAllConnections(messageField.getText());
+        myServer.getMainThread().sendToAllConnections("[SERVER] " + messageField.getText());
         messageField.setText("");
+    }
+
+    @FXML
+    public void startGame() {
+        gameControlButton.setText("Stop");
+        gameControlButton.setOnAction(event -> stopGame());
+        myServer.getGameThread().start();
+    }
+
+    private void stopGame() {
+        gameControlButton.setText("Start");
+        gameControlButton.setOnAction(event -> startGame());
+        myServer.getGameThread().setRunning(false);
     }
 
     /**
@@ -143,8 +157,13 @@ public class ServerControlController {
     public void bindValues() {
         currentPlayersLabel.textProperty().bind(myServer.getMainThread().numberClientsProperty());
         numberUsersLabel.textProperty().bind(myServer.getMainThread().numberUsersProperty());
+        lastSaveLabel.textProperty().bind(myServer.getMainThread().lastSaveProperty());
+        gameTimeLabel.textProperty().bind(myServer.getMainThread().gameTimeProperty());
+        serverStatusLabel.textProperty().bind(myServer.getMainThread().statusProperty());
+
         usersListView.itemsProperty().bind(myServer.getMainThread().getUserListUpdater());
         logListView.itemsProperty().bind(myServer.getLogger().getLogListProperty());
+        chatListView.itemsProperty().bind(myServer.getMainThread().getChatUpdater());
     }
 
 }
