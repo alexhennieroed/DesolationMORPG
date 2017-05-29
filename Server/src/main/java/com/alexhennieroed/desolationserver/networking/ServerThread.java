@@ -10,7 +10,9 @@ import main.java.com.alexhennieroed.desolationserver.Server;
 import main.java.com.alexhennieroed.desolationserver.Settings;
 import main.java.com.alexhennieroed.desolationserver.game.ServerGameThread;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -39,6 +41,8 @@ public class ServerThread extends Thread {
     private List<User> userList = new ArrayList<>();
     private List<InetAddress> blacklistAddresses = new ArrayList<>();
     private List<User> blacklistUsers = new ArrayList<>();
+    private File blacklistAddressFile;
+    private File blacklistUserFile;
     private ListProperty<String> chatUpdater = new SimpleListProperty<>();
     private List<String> messageLog = new ArrayList<>();
     private List<String> logDisplayList = new ArrayList<>();
@@ -48,6 +52,18 @@ public class ServerThread extends Thread {
     public ServerThread(Server server) {
         this.myServer = server;
         this.userList = myServer.getDbconnector().getAllUsers();
+        this.blacklistAddressFile = new File(myServer.getJarLocation().getAbsolutePath() +
+            "/blacklistAddresses.txt");
+        this.blacklistUserFile = new File(myServer.getJarLocation().getAbsolutePath() +
+            "/blacklistUsers.txt");
+        try {
+            Scanner addressScanner = new Scanner(blacklistAddressFile);
+            while (addressScanner.hasNextLine()) {
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -73,7 +89,7 @@ public class ServerThread extends Thread {
             update.start();
             //Get a packet and send it to the proper destination
             while (true) {
-                byte[] buf = new byte[256];
+                byte[] buf = new byte[512];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
                 InetAddress address = packet.getAddress();
@@ -116,10 +132,10 @@ public class ServerThread extends Thread {
      */
     public void sendToAllConnections(String message) {
         if (!message.contains("game_update")) {
-            message = "server_message:" + processString(message, 40);
             lock.writeLock().lock();
             messageLog.add(message);
             lock.writeLock().unlock();
+            message = "server_message:" + processString(message, 40);
         }
         for (InetAddress address : clientAddressList.keySet()) {
             clientAddressList.get(address).sendData(message);
@@ -156,16 +172,23 @@ public class ServerThread extends Thread {
      */
     public void disconnectUser(User user, String reason) {
         InetAddress address = getUserAddress(user);
+        String type = "disconnected";
         if (address != null) {
             if (reason.equals("blacklist")) {
                 blacklistAddresses.add(address);
                 blacklistUsers.add(user);
+                try {
+                    PrintStream addressStream = new PrintStream(blacklistAddressFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                type = "disconnected and blacklisted";
             }
             clientAddressList.get(address).sendData("disconnected:" + reason);
             clientAddressList.get(address).setDisconnected(true);
         }
         myServer.getLogger().logNetworkEvent(user.getUsername() +
-            " was disconnected.");
+            " was " + type + ".");
     }
 
     /**

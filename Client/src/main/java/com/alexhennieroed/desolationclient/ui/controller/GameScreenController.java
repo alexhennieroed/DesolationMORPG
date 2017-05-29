@@ -4,7 +4,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Controls the GameScreen
@@ -24,6 +29,9 @@ public class GameScreenController extends Controller {
 
     @FXML
     private TextField messageField;
+
+    @FXML
+    private ImageView displayImageView;
 
     @FXML
     public void sendMessage() {
@@ -54,6 +62,18 @@ public class GameScreenController extends Controller {
             messageField.setDisable(false);
             messageField.setVisible(true);
             messagePane.setVisible(true);
+        }
+    }
+
+    @Override
+    public void updateVisuals(String visual) {
+        try {
+            File imageFile =
+                    new File("src/main/res/visuals/" + visual);
+            Image image = new Image(imageFile.toURI().toURL().toExternalForm());
+            displayImageView.setImage(image);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

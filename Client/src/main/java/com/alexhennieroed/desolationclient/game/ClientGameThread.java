@@ -29,8 +29,10 @@ public class ClientGameThread extends Thread {
     private List<String> messageBuffer = new ArrayList<>();
     private Map<String, Integer> messageTimers = new HashMap<>();
     private String currentTime = "";
+    private String currentVisual = "";
     private StringProperty timeUpdater = new SimpleStringProperty();
     private ListProperty<String> messages = new SimpleListProperty<>();
+    private boolean visChange;
 
     public ClientGameThread(Client client) {
         this.myClient = client;
@@ -39,17 +41,21 @@ public class ClientGameThread extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Game thread, yay!");
         running = true;
+        visChange = true;
         while (running) {
             try {
+                handleInput();
                 long delay = update();
                 sleep(Math.max(0, MAX_DELAY_MS - delay));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Game is done.");
+    }
+
+    private void handleInput() {
+        //TODO
     }
 
     private long update() {
@@ -65,8 +71,11 @@ public class ClientGameThread extends Thread {
             }
         }
 
-
         Platform.runLater(() -> {
+            if (visChange) {
+                myClient.getCurrentController().updateVisuals(currentVisual);
+                visChange = false;
+            }
             timeUpdater.setValue(currentTime);
             messages.setValue(FXCollections.observableArrayList(messageBuffer));
         });
@@ -98,5 +107,12 @@ public class ClientGameThread extends Thread {
     public void setCurrentTime(String time) { this.currentTime = time; }
 
     public void setRunning(boolean running) { this.running = running; }
+
+    public void setCurrentVisual(String visual) {
+        if (!(this.currentVisual.equals(visual))) {
+            visChange = true;
+        }
+        this.currentVisual = visual;
+    }
 
 }

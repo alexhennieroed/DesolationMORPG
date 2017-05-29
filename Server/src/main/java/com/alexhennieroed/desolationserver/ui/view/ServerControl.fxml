@@ -40,7 +40,7 @@
       </MenuBar>
    </top>
    <right>
-      <ListView fx:id="logListView" focusTraversable="false" prefHeight="568.0" prefWidth="460.0" BorderPane.alignment="CENTER" />
+      <ListView fx:id="logListView" focusTraversable="false" prefHeight="568.0" prefWidth="476.0" BorderPane.alignment="CENTER" />
    </right>
    <center>
       <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">

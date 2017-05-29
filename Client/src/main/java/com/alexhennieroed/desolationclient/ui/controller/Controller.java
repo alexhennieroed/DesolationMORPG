@@ -49,4 +49,8 @@ public class Controller {
         System.out.println("Showing and hiding in the wrong controller.");
     }
 
+    public void updateVisuals(String visual) {
+        System.out.println("Updating visuals in the wrong controller.");
+    }
+
 }

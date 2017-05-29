@@ -11,7 +11,9 @@ import main.java.com.alexhennieroed.desolationserver.networking.ServerThread;
 import main.java.com.alexhennieroed.desolationserver.ui.controller.ServerControlController;
 import main.java.com.alexhennieroed.desolationserver.util.ServerLogger;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 /**
  * The main class of the server that interfaces between the UI and the logic
@@ -24,8 +26,9 @@ public class Server extends Application {
     private ServerLogger logger = new ServerLogger();
 
     private final DatabaseConnector dbconnector = new DatabaseConnector(this);
-    private final ServerThread mainThread = new ServerThread(this);
+    private ServerThread mainThread;
     private final ServerGameThread gameThread = new ServerGameThread(this);
+    private File jarLocation;
 
     public static void main(String[] args) {
         launch(args);
@@ -34,6 +37,12 @@ public class Server extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         mainStage = stage;
+        try {
+            jarLocation = new File(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            mainThread = new ServerThread(this);
+        } catch (URISyntaxException e) {
+            getLogger().logException(e);
+        }
         mainStage.setOnCloseRequest((event) -> {
             event.consume();
             close();
@@ -72,6 +81,12 @@ public class Server extends Application {
      * @return the ServerLogger
      */
     public ServerLogger getLogger() { return logger; }
+
+    /**
+     * Returns the jarLocation File
+     * @return the jarLocation File
+     */
+    public File getJarLocation() { return jarLocation; }
 
     /**
      * Closes the application

@@ -5,7 +5,8 @@ import main.java.com.alexhennieroed.desolationserver.game.model.World;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.WeakHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Controls the game in the server
@@ -19,31 +20,59 @@ public class ServerGameThread extends Thread {
 
     private String currentGameTime;
     private boolean running;
+    private List<String> visuals;
+    private int currentVisual;
 
     public ServerGameThread(Server server) {
         this.myServer = server;
         this.myWorld = new World();
+        this.visuals = setupVisuals();
+        this.currentVisual = 0;
     }
 
     @Override
     public void run() {
         running = true;
-        myServer.getLogger().logGameEvent("Game thread started.");
+        myServer.getLogger().logGameEvent("Game world started.");
+        int loopcount = 150000;
         while (running) {
             try {
+                if (loopcount >= 150000) {
+                    loopcount = 0;
+                    currentVisual++;
+                    if (currentVisual >= 3) {
+                        currentVisual = 0;
+                    }
+                } else {
+                    loopcount++;
+                }
+                handleInput();
                 update();
             } catch (Exception e) {
                 myServer.getLogger().logException(e);
                 running = false;
             }
         }
-        myServer.getLogger().logGameEvent("Game thread ended.");
+        myServer.getLogger().logGameEvent("Game world stopped.");
+    }
+
+    private List<String> setupVisuals() {
+        List<String> ans = new ArrayList<>();
+        ans.add("forest.png");
+        ans.add("city.png");
+        ans.add("mountains.png");
+        return ans;
+    }
+
+    private void handleInput() {
+        //TODO
     }
 
     private void update() {
         //Do game stuff
         currentGameTime = localTimeToGameTime();
-        myServer.getMainThread().sendToAllConnections("game_update:" + currentGameTime);
+        myServer.getMainThread().sendToAllConnections("game_update:" + currentGameTime +
+            ":" + visuals.get(currentVisual));
     }
 
     /**

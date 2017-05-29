@@ -47,7 +47,7 @@ public class ServerConnector extends Thread {
 
     @Override
     public void run() {
-        byte[] buf = new byte[256];
+        byte[] buf = new byte[512];
         try {
             if (!connect(buf)) {
                 return;
@@ -88,7 +88,6 @@ public class ServerConnector extends Thread {
                         showMessageAndClose(message);
                     } else if (received.contains("server_message") &&
                             myClient.getState() == Client.ClientState.IN_GAME) {
-                        System.out.println(received);
                         String message = received.split(":")[1];
                         myClient.getGameThread().addNewMessage(message);
                     } else if (received.contains("game_start")) {
@@ -99,7 +98,8 @@ public class ServerConnector extends Thread {
                     } else if (received.contains("game_update") &&
                             myClient.getState() == Client.ClientState.IN_GAME) {
                         String[] updateInfo = received.split(":");
-                        myClient.getGameThread().setCurrentTime(updateInfo[1]);
+                        myClient.getGameThread().setCurrentTime(updateInfo[1] + ":" + updateInfo[2]);
+                        myClient.getGameThread().setCurrentVisual(updateInfo[3]);
                     } else if (received.equals("game_end") &&
                             myClient.getState() == Client.ClientState.IN_GAME) {
                         myClient.setState(Client.ClientState.IN_CHAR_SCREEN);
@@ -137,9 +137,8 @@ public class ServerConnector extends Thread {
     private boolean connect(byte[] buf) throws IOException {
         try {
             socket.setSoTimeout(Settings.TIMEOUT);
-            sendPacket(buf, "connect");
+            sendPacket("connect");
             String received = receivePacket(buf);
-            System.out.println(received);
             if (received.contains("Error")) {
                 System.out.println(received);
                 return false;
@@ -150,7 +149,6 @@ public class ServerConnector extends Thread {
                 showMessageAndClose("You have been blocked by the server's blacklist.");
             }
         } catch (SocketTimeoutException e) {
-            System.out.println("Error: connection timeout.");
             myClient.setState(Client.ClientState.CONNECTION_TIMEOUT);
             return false;
         }
@@ -172,12 +170,11 @@ public class ServerConnector extends Thread {
 
     /**
      * Sends a packet to the server
-     * @param buf the buffer to hold stuff
      * @param data the data to send
      * @throws IOException when there is an IO issue
      */
-    private void sendPacket(byte[] buf, String data) throws IOException {
-        buf = data.getBytes();
+    private void sendPacket(String data) throws IOException {
+        byte[] buf = data.getBytes();
         DatagramPacket sendPacket =
                 new DatagramPacket(buf, buf.length, address, port);
         socket.send(sendPacket);
@@ -188,11 +185,10 @@ public class ServerConnector extends Thread {
      * @param data the data to send
      */
     public void sendData(String data) {
-        byte[] buf = new byte[256];
         //TODO
         //Check that the data is acceptable
         try {
-            sendPacket(buf, data);
+            sendPacket(data);
         } catch (IOException e) {
             e.printStackTrace();
         }
