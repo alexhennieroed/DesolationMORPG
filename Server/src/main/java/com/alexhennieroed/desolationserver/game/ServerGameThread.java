@@ -1,11 +1,14 @@
 package main.java.com.alexhennieroed.desolationserver.game;
 
 import main.java.com.alexhennieroed.desolationserver.Server;
-import main.java.com.alexhennieroed.desolationserver.game.model.World;
+import main.java.com.alexhennieroed.desolationserver.game.model.*;
+import main.java.com.alexhennieroed.desolationserver.game.model.Character;
+import main.java.com.alexhennieroed.desolationserver.networking.ClientConnector;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,9 +26,20 @@ public class ServerGameThread extends Thread {
     private List<String> visuals;
     private int currentVisual;
 
+    /**
+     * Creates a new ServerGameThread
+     * @param server the server that owns this thread
+     */
     public ServerGameThread(Server server) {
         this.myServer = server;
-        this.myWorld = new World();
+        //Test list
+        List<WorldObject> objlist = Arrays.asList(
+                new Construction(4, 5, Construction.ConstructionType.WALL),
+                new Construction(4, 6, Construction.ConstructionType.WALL),
+                new Construction(4, 7, Construction.ConstructionType.WALL),
+                new Construction(9, 0, Construction.ConstructionType.WALL),
+                new NPC("John Doe", 3, 3), new NPC("Jane Doe", 8, 7));
+        this.myWorld = new World(objlist);
         this.visuals = setupVisuals();
         this.currentVisual = 0;
     }
@@ -46,7 +60,6 @@ public class ServerGameThread extends Thread {
                 } else {
                     loopcount++;
                 }
-                handleInput();
                 update();
             } catch (Exception e) {
                 myServer.getLogger().logException(e);
@@ -56,6 +69,10 @@ public class ServerGameThread extends Thread {
         myServer.getLogger().logGameEvent("Game world stopped.");
     }
 
+    /**
+     * Initializes visuals for the game
+     * @return a list of file names of the visuals
+     */
     private List<String> setupVisuals() {
         List<String> ans = new ArrayList<>();
         ans.add("forest.png");
@@ -64,15 +81,38 @@ public class ServerGameThread extends Thread {
         return ans;
     }
 
-    private void handleInput() {
-        //TODO
-    }
-
+    /**
+     * Updates the game
+     */
     private void update() {
         //Do game stuff
         currentGameTime = localTimeToGameTime();
-        myServer.getMainThread().sendToAllConnections("game_update:" + currentGameTime +
-            ":" + visuals.get(currentVisual));
+        
+        //Update the connected clients
+        for(Object cc : myServer.getMainThread().getClientConnectors()) {
+            ClientConnector clicon = (ClientConnector) cc;
+            Character cliconchar = clicon.getCurrentUser().getCharacter();
+            clicon.getRwlock().readLock().lock();
+            boolean[] mArr = clicon.getMoving();
+            if (mArr[0] && !mArr[2]) {
+                cliconchar.move(Direction.NORTH);
+            } else if (mArr[2] && !mArr[0]) {
+                cliconchar.move(Direction.SOUTH);
+            }
+            if (mArr[1] && !mArr[3]) {
+                cliconchar.move(Direction.WEST);
+            } else if (mArr[3] && !mArr[1]) {
+                cliconchar.move(Direction.EAST);
+            }
+            clicon.getRwlock().readLock().unlock();
+            StringBuilder builder = new StringBuilder();
+            builder.append("game_update:" + currentGameTime +
+                    ":" + visuals.get(currentVisual) + ":"
+                    + cliconchar.getWorldX() + ":" + cliconchar.getWorldY() + ":");
+            myWorld.getNearbyObjects(cliconchar).forEach(object -> builder.append(object.toString() + ":"));
+            builder.append("END");
+            clicon.sendData(builder.toString());
+        }
     }
 
     /**
@@ -80,7 +120,7 @@ public class ServerGameThread extends Thread {
      * @return the time as a string
      */
     private String localTimeToGameTime() {
-        LocalDateTime gmt = LocalDateTime.now(ZoneId.of("GMT+0"));
+        LocalDateTime gmt = LocalDateTime.now(ZoneId.systemDefault());
         String[] gmtBits = gmt.toString().split("T");
         StringBuilder builder = new StringBuilder();
         builder.append(gmtBits[0]);

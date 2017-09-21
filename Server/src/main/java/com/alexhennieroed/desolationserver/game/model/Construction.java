@@ -20,25 +20,39 @@ public class Construction extends WorldObject {
         this.type = type;
     }
 
+    @Override
+    public String toString() {
+        return "[CON]" + type.getName() + " (" + getWorldX() + "," + getWorldY() + ")";
+    }
+
     /**
      * An enum of different types of constructions
      */
     public enum ConstructionType {
 
-        WALL(false, false);
+        WALL("Wall", false, false);
 
+        private String name;
         private boolean destructible;
         private boolean penetrable;
 
         /**
          * Defines a new type of construction
+         * @param name the name of the construction
          * @param destructible whether or not this can be destroyed
          * @param penetrable whether or not this can be penetrated
          */
-        ConstructionType(boolean destructible, boolean penetrable) {
+        ConstructionType(String name, boolean destructible, boolean penetrable) {
+            this.name = name;
             this.destructible = destructible;
             this.penetrable = penetrable;
         }
+
+        /**
+         * Returns the name
+         * @return the name
+         */
+        public String getName() { return name; }
 
         /**
          * Returns the destructible property

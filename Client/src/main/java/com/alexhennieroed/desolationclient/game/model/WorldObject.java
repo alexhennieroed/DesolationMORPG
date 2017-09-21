@@ -1,4 +1,4 @@
-package main.java.com.alexhennieroed.desolationserver.game.model;
+package main.java.com.alexhennieroed.desolationclient.game.model;
 
 /**
  * Represents an object inside the world
@@ -35,7 +35,4 @@ public class WorldObject {
     public int getWorldY() {
         return worldY;
     }
-
-    @Override
-    public String toString() { return "[WO]### (" + getWorldX() + "," + getWorldY() + ")"; }
 }

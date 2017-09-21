@@ -5,8 +5,10 @@ package main.java.com.alexhennieroed.desolationclient.game.model;
  * @author Alexander Hennie-Roed
  * @version 1.0.0
  */
-public class Actor {
+public class Actor extends WorldObject{
 
-
+    public Actor() {
+        super(0,0);
+    }
 
 }

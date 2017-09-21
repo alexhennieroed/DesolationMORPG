@@ -1,11 +1,14 @@
 package main.java.com.alexhennieroed.desolationclient.ui.controller;
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 
 import java.io.File;
@@ -48,6 +51,42 @@ public class GameScreenController extends Controller {
     public void bindValues() {
         currentTimeLabel.textProperty().bind(myClient.getGameThread().timeUpdaterProperty());
         messageListView.itemsProperty().bind(myClient.getGameThread().messagesProperty());
+        messagePane.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(event.getCode() == KeyCode.W || event.getCode() == KeyCode.UP) {
+                    myClient.getServerConnector().sendData("move:FORWARD_START");
+                } else if(event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT) {
+                    myClient.getServerConnector().sendData("move:LEFT_START");
+                } else if(event.getCode() == KeyCode.S || event.getCode() == KeyCode.DOWN) {
+                    myClient.getServerConnector().sendData("move:BACK_START");
+                } else if(event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
+                    myClient.getServerConnector().sendData("move:RIGHT_START");
+                }
+            }
+        });
+        messagePane.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(event.getCode() == KeyCode.W || event.getCode() == KeyCode.UP) {
+                    myClient.getServerConnector().sendData("move:FORWARD_STOP");
+                } else if(event.getCode() == KeyCode.A || event.getCode() == KeyCode.LEFT) {
+                    myClient.getServerConnector().sendData("move:LEFT_STOP");
+                } else if(event.getCode() == KeyCode.S || event.getCode() == KeyCode.DOWN) {
+                    myClient.getServerConnector().sendData("move:BACK_STOP");
+                } else if(event.getCode() == KeyCode.D || event.getCode() == KeyCode.RIGHT) {
+                    myClient.getServerConnector().sendData("move:RIGHT_STOP");
+                }
+            }
+        });
+        messagePane.setOnKeyTyped(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if (event.getCode() ==KeyCode.T) {
+                    showHideSection();
+                }
+            }
+        });
     }
 
     @Override

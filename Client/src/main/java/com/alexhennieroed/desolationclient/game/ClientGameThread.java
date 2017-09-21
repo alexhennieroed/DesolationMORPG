@@ -71,6 +71,8 @@ public class ClientGameThread extends Thread {
             }
         }
 
+
+
         Platform.runLater(() -> {
             if (visChange) {
                 myClient.getCurrentController().updateVisuals(currentVisual);
@@ -113,6 +115,10 @@ public class ClientGameThread extends Thread {
             visChange = true;
         }
         this.currentVisual = visual;
+    }
+
+    public void updateCharacterPosition(String new_x, String new_y) {
+
     }
 
 }

@@ -166,7 +166,7 @@ public class ServerThread extends Thread {
     }
 
     /**
-     * Disconects the selected user and send them a message with the reason
+     * Disconnects the selected user and send them a message with the reason
      * @param user the user to disconnect
      * @param reason the reason for disconnection
      */
@@ -244,6 +244,8 @@ public class ServerThread extends Thread {
     Map<InetAddress, DatagramPacket> getClientBuffers() {
         return clientBuffers;
     }
+
+    public List getClientConnectors() { return (List<ClientConnector>) clientAddressList.values(); }
 
     /**
      * Returns the userList

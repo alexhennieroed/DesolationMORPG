@@ -8,7 +8,10 @@ import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Connects to the clients
@@ -26,6 +29,8 @@ public class ClientConnector extends Thread {
     private User currentUser;
     private boolean disconnected;
     private boolean isInGame;
+    private boolean[] moving; // [forward, left, back, right]
+    private ReadWriteLock rwlock = new ReentrantReadWriteLock();
 
     /**
      * Creates a new ServerThread
@@ -41,6 +46,8 @@ public class ClientConnector extends Thread {
         this.myServer = server;
         this.currentUser = null;
         this.disconnected = false;
+        this.moving = new boolean[4];
+        Arrays.fill(moving, false);
     }
 
     @Override
@@ -119,6 +126,53 @@ public class ClientConnector extends Thread {
                                 " has left the world.");
                         isInGame = false;
                         sendPacket("game_end");
+                    } else if (received.contains("move")) {
+                        String command = received.split(":")[1];
+                        switch (command) {
+                            case "FORWARD_START":
+                                rwlock.writeLock().lock();
+                                moving[0] = true;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "FORWARD_STOP":
+                                rwlock.writeLock().lock();
+                                moving[0] = false;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "LEFT_START":
+                                rwlock.writeLock().lock();
+                                moving[1] = true;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "LEFT_STOP":
+                                rwlock.writeLock().lock();
+                                moving[1] = false;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "BACK_START":
+                                rwlock.writeLock().lock();
+                                moving[2] = true;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "BACK_STOP":
+                                rwlock.writeLock().lock();
+                                moving[2] = false;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "RIGHT_START":
+                                rwlock.writeLock().lock();
+                                moving[3] = true;
+                                rwlock.writeLock().unlock();
+                                break;
+                            case "RIGHT_STOP":
+                                rwlock.writeLock().lock();
+                                moving[3] = false;
+                                rwlock.writeLock().unlock();
+                                break;
+                            default:
+                                myServer.getLogger().logServerError("Received Unknown Movement Command: " + command);
+                                break;
+                        }
                     }
                 }
             }
@@ -194,6 +248,18 @@ public class ClientConnector extends Thread {
      * @return the current user
      */
     public User getCurrentUser() { return currentUser; }
+
+    /**
+     * Returns the ReadWriteLock for the moving array
+     * @return the moving array's ReadWriteLock
+     */
+    public ReadWriteLock getRwlock() { return rwlock; }
+
+    /**
+     * Returns the moving array
+     * @return the moving array
+     */
+    public boolean[] getMoving() { return moving; }
 
     /**
      * Sets the value of disconnected

@@ -27,4 +27,7 @@ public class Actor extends WorldObject {
         return false;
     }
 
+    @Override
+    public String toString() { return "[ACT]### (" + getWorldX() + "," + getWorldY() + ")"; }
+
 }

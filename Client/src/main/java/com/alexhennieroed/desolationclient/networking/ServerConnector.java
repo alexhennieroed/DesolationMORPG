@@ -100,6 +100,7 @@ public class ServerConnector extends Thread {
                         String[] updateInfo = received.split(":");
                         myClient.getGameThread().setCurrentTime(updateInfo[1] + ":" + updateInfo[2]);
                         myClient.getGameThread().setCurrentVisual(updateInfo[3]);
+                        myClient.getGameThread().updateCharacterPosition(updateInfo[4], updateInfo[5]);
                     } else if (received.equals("game_end") &&
                             myClient.getState() == Client.ClientState.IN_GAME) {
                         myClient.setState(Client.ClientState.IN_CHAR_SCREEN);
